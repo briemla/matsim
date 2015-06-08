@@ -1,4 +1,8 @@
 package de.briemla.matsim.generator;
+
+import java.time.LocalTime;
+import java.util.ArrayList;
+
 import javafx.util.Duration;
 
 import org.matsim.api.core.v01.Coord;
@@ -131,7 +135,9 @@ public class PrimitivePopulationGenerator {
 	}
 
 	private Coord workCoordinate() {
-		return COORDINATE_TRANSFORMATION.transform(scenario.createCoord(16.70867784178271, 2.3065474906639887));
+		ArrayList<? extends Node> nodes = new ArrayList<>(network.getNodes().values());
+		int nodeIndex = (int) (Math.random() * nodes.size());
+		return nodes.get(nodeIndex).getCoord();
 	}
 
 	private double workLeaveTime() {
@@ -173,9 +179,16 @@ public class PrimitivePopulationGenerator {
 	}
 
 	public static void main(String[] args) {
+		LocalTime start = LocalTime.now();
+
 		PrimitivePopulationGenerator generator = new PrimitivePopulationGenerator(false);
 		generator.createSetup();
 		generator.startSimulation();
+
+		LocalTime end = LocalTime.now();
+		Duration duration = new Duration(end.toSecondOfDay() * 1000 - start.toSecondOfDay() * 1000);
+
+		System.out.println("Creation and simulation took: " + duration.toSeconds() + "s");
 	}
 
 }
