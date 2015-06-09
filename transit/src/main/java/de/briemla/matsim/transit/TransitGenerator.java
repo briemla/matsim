@@ -99,9 +99,14 @@ public class TransitGenerator {
 		TransitRoute transitRoute = transitScheduleFactory.createTransitRoute(Id.create("2", TransitRoute.class),
 				route, stops, "pt");
 
-		Departure firstDeparture = transitScheduleFactory.createDeparture(Id.create(1, Departure.class), 6 * 60 * 60);
-		firstDeparture.setVehicleId(Id.create("tr_1", Vehicle.class));
-		transitRoute.addDeparture(firstDeparture);
+		for (int departure = 0; departure < 10; departure++) {
+			long offset = Duration.ofMinutes(5 * departure).getSeconds();
+			long startTime = Duration.ofHours(6).getSeconds();
+			Departure departureTime = transitScheduleFactory.createDeparture(Id.create(departure, Departure.class),
+					startTime + offset);
+			departureTime.setVehicleId(Id.create("tr_1", Vehicle.class));
+			transitRoute.addDeparture(departureTime);
+		}
 		return transitRoute;
 	}
 

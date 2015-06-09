@@ -20,7 +20,16 @@
 				<link refId="33"/>
 			</route>
 			<departures>
-				<departure id="1" departureTime="06:00:00" vehicleRefId="tr_1"/>
+				<departure id="0" departureTime="06:00:00" vehicleRefId="tr_1"/>
+				<departure id="1" departureTime="06:05:00" vehicleRefId="tr_1"/>
+				<departure id="2" departureTime="06:10:00" vehicleRefId="tr_1"/>
+				<departure id="3" departureTime="06:15:00" vehicleRefId="tr_1"/>
+				<departure id="4" departureTime="06:20:00" vehicleRefId="tr_1"/>
+				<departure id="5" departureTime="06:25:00" vehicleRefId="tr_1"/>
+				<departure id="6" departureTime="06:30:00" vehicleRefId="tr_1"/>
+				<departure id="7" departureTime="06:35:00" vehicleRefId="tr_1"/>
+				<departure id="8" departureTime="06:40:00" vehicleRefId="tr_1"/>
+				<departure id="9" departureTime="06:45:00" vehicleRefId="tr_1"/>
 			</departures>
 		</transitRoute>
 	</transitLine>
