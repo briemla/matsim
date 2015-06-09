@@ -99,6 +99,10 @@ public class TransitGenerator {
 		TransitRoute transitRoute = transitScheduleFactory.createTransitRoute(Id.create("2", TransitRoute.class),
 				route, stops, "pt");
 
+		return addDeparturesTo(transitRoute);
+	}
+
+	private TransitRoute addDeparturesTo(TransitRoute transitRoute) {
 		for (int departure = 0; departure < 10; departure++) {
 			long offset = Duration.ofMinutes(5 * departure).getSeconds();
 			long startTime = Duration.ofHours(6).getSeconds();
