@@ -24,10 +24,11 @@ import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 
 /**
+ * Create a {@link Population} where a {@link Person} is added at each
+ * {@link Node}. The plan for each person contains the home {@link Node} as
+ * start and end activity and a random {@link Node} as work location.
  *
- * Creates a sample Population of one Person and writes it to a file.
- *
- * @author michaz
+ * @author lars
  *
  */
 public class PrimitivePopulationGenerator {
