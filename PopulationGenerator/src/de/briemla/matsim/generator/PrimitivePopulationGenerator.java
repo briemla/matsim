@@ -32,6 +32,7 @@ import org.matsim.core.utils.geometry.transformations.TransformationFactory;
  *
  */
 public class PrimitivePopulationGenerator {
+	private static final String CONFIG_FILE = "./input/config.xml";
 	private static final String POPULATION_FILE = "./input/population.xml";
 	private static final Duration MORNING_LEAVE_TIME = Duration.ofHours(6);
 	private static final Duration WORK_LEAVE_TIME = Duration.ofHours(16);
@@ -52,7 +53,7 @@ public class PrimitivePopulationGenerator {
 	private final boolean clearPopulation = true;
 
 	public PrimitivePopulationGenerator() {
-		config = ConfigUtils.loadConfig("input/config.xml");
+		config = ConfigUtils.loadConfig(CONFIG_FILE);
 		scenario = ScenarioUtils.loadScenario(config);
 		network = scenario.getNetwork();
 		population = scenario.getPopulation();
@@ -109,15 +110,15 @@ public class PrimitivePopulationGenerator {
 	 */
 	private Plan createPlanFrom(Node node) {
 		Plan plan = populationFactory.createPlan();
-		Activity homeMorning = populationFactory.createActivityFromCoord("h9", node.getCoord());
+		Activity homeMorning = populationFactory.createActivityFromCoord("home", node.getCoord());
 		homeMorning.setEndTime(morningLeaveTime());
 		plan.addActivity(homeMorning);
 		plan.addLeg(populationFactory.createLeg("car"));
-		Activity workActivity = populationFactory.createActivityFromCoord("w5", workCoordinate());
+		Activity workActivity = populationFactory.createActivityFromCoord("work", workCoordinate());
 		workActivity.setEndTime(workLeaveTime());
 		plan.addActivity(workActivity);
 		plan.addLeg(populationFactory.createLeg("car"));
-		Activity homeEvening = populationFactory.createActivityFromCoord("h9", node.getCoord());
+		Activity homeEvening = populationFactory.createActivityFromCoord("home", node.getCoord());
 		plan.addActivity(homeEvening);
 		return plan;
 	}
