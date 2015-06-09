@@ -1,4 +1,4 @@
-package de.briemla.matsim.transit;
+package de.briemla.matsim.generator;
 
 import java.time.Duration;
 import java.time.LocalTime;
@@ -141,7 +141,7 @@ public class TransitGenerator {
 		LocalTime start = LocalTime.now();
 
 		TransitGenerator generator = new TransitGenerator();
-		generator.createSetup();
+		// generator.createSetup();
 		LocalTime afterSetup = LocalTime.now();
 
 		generator.startSimulation();
