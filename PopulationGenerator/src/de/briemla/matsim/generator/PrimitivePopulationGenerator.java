@@ -146,7 +146,7 @@ public class PrimitivePopulationGenerator {
 	 * @return new instance of {@link Duration} with added minutes
 	 */
 	private static Duration randomize(Duration time) {
-		long minutes = (long) ((Math.random() * 120) - 60);
+		long minutes = (long) ((Math.random() * 60) - 30);
 		return time.plusMinutes(minutes);
 	}
 

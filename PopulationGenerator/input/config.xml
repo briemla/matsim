@@ -18,7 +18,7 @@
 	<!-- ====================================================================== -->
 
 	<module name="network">
-		<param name="inputNetworkFile" value="&INBASE;/network.xml" />
+		<param name="inputNetworkFile" value="&INBASE;/karlsruhe.xml" />
 	</module>
 	
 	<!-- ====================================================================== -->
