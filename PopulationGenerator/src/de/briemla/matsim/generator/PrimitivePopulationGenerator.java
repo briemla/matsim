@@ -1,9 +1,8 @@
 package de.briemla.matsim.generator;
 
+import java.time.Duration;
 import java.time.LocalTime;
 import java.util.ArrayList;
-
-import javafx.util.Duration;
 
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -34,9 +33,9 @@ import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 public class PrimitivePopulationGenerator {
 	private static final String POPULATION_FILE = "./input/population.xml";
 
-	private static final Duration MORNING_LEAVE_TIME = Duration.hours(6);
+	private static final Duration MORNING_LEAVE_TIME = Duration.ofHours(6);
 
-	private static final Duration WORK_LEAVE_TIME = Duration.hours(16);
+	private static final Duration WORK_LEAVE_TIME = Duration.ofHours(16);
 
 	/*
 	 * We enter coordinates in the WGS84 reference system, but we want them to
@@ -53,10 +52,7 @@ public class PrimitivePopulationGenerator {
 	private final PopulationFactory populationFactory;
 	private final boolean clearPopulation = true;
 
-	private final boolean debug;
-
-	public PrimitivePopulationGenerator(boolean debug) {
-		this.debug = debug;
+	public PrimitivePopulationGenerator() {
 		config = ConfigUtils.loadConfig("input/config.xml");
 		scenario = ScenarioUtils.loadScenario(config);
 		network = scenario.getNetwork();
@@ -75,14 +71,7 @@ public class PrimitivePopulationGenerator {
 	 * Create a person at each {@link Node}
 	 */
 	private void createPopulation() {
-		for (Node node : network.getNodes().values()) {
-			createPerson(node);
-
-			if (debug && population.getPersons().size() >= 20) {
-				break;
-			}
-		}
-
+		network.getNodes().values().stream().forEach(this::createPerson);
 		savePopulation();
 	}
 
@@ -141,11 +130,11 @@ public class PrimitivePopulationGenerator {
 	}
 
 	private double workLeaveTime() {
-		return randomize(WORK_LEAVE_TIME).toSeconds();
+		return randomize(WORK_LEAVE_TIME).getSeconds();
 	}
 
 	private double morningLeaveTime() {
-		return randomize(MORNING_LEAVE_TIME).toSeconds();
+		return randomize(MORNING_LEAVE_TIME).getSeconds();
 	}
 
 	/**
@@ -157,9 +146,8 @@ public class PrimitivePopulationGenerator {
 	 * @return new instance of {@link Duration} with added minutes
 	 */
 	private static Duration randomize(Duration time) {
-		double minutes = (Math.random() * 120) - 60;
-		Duration offset = Duration.minutes(minutes);
-		return time.add(offset);
+		long minutes = (long) ((Math.random() * 120) - 60);
+		return time.plusMinutes(minutes);
 	}
 
 	/**
@@ -181,14 +169,20 @@ public class PrimitivePopulationGenerator {
 	public static void main(String[] args) {
 		LocalTime start = LocalTime.now();
 
-		PrimitivePopulationGenerator generator = new PrimitivePopulationGenerator(false);
+		PrimitivePopulationGenerator generator = new PrimitivePopulationGenerator();
 		generator.createSetup();
+		LocalTime afterSetup = LocalTime.now();
+
 		generator.startSimulation();
 
 		LocalTime end = LocalTime.now();
-		Duration duration = new Duration(end.toSecondOfDay() * 1000 - start.toSecondOfDay() * 1000);
+		Duration setup = Duration.between(start, afterSetup);
+		Duration simulation = Duration.between(afterSetup, end);
+		Duration complete = Duration.between(start, end);
 
-		System.out.println("Creation and simulation took: " + duration.toSeconds() + "s");
+		System.out.println("Creation and simulation took: " + complete.getSeconds() + "s");
+		System.out.println("Creation took: " + setup.getSeconds() + "s");
+		System.out.println("Simulation took: " + simulation.getSeconds() + "s");
 	}
 
 }
