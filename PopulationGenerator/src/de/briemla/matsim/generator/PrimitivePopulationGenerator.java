@@ -33,9 +33,7 @@ import org.matsim.core.utils.geometry.transformations.TransformationFactory;
  */
 public class PrimitivePopulationGenerator {
 	private static final String POPULATION_FILE = "./input/population.xml";
-
 	private static final Duration MORNING_LEAVE_TIME = Duration.ofHours(6);
-
 	private static final Duration WORK_LEAVE_TIME = Duration.ofHours(16);
 
 	/*
