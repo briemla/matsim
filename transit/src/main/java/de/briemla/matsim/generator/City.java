@@ -1,11 +1,15 @@
 package de.briemla.matsim.generator;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Node;
+import org.matsim.core.utils.geometry.CoordImpl;
+import org.matsim.core.utils.geometry.CoordinateTransformation;
 
 import de.micromata.opengis.kml.v_2_2_0.Boundary;
 import de.micromata.opengis.kml.v_2_2_0.Coordinate;
@@ -17,8 +21,10 @@ import de.micromata.opengis.kml.v_2_2_0.Polygon;
 public class City {
 
 	private final List<District> districts;
+	private final CoordinateTransformation coordinateTransformation;
 
-	public City() {
+	public City(CoordinateTransformation coordinateTransformation) {
+		this.coordinateTransformation = coordinateTransformation;
 		districts = new ArrayList<>();
 	}
 
@@ -29,14 +35,19 @@ public class City {
 	private void addDistrict(Placemark placemark) {
 		Geometry geometry = placemark.getGeometry();
 		if (geometry instanceof Polygon) {
-			add(coordinates((Polygon) geometry));
+			String name = placemark.getName();
+			add(name, coordinates((Polygon) geometry));
 		}
 	}
 
-	private void add(List<Coordinate> coordinates) {
-		District district = new District();
-		coordinates.forEach(coordinate -> district.add(coordinate));
+	private void add(String name, List<Coordinate> coordinates) {
+		District district = new District(name);
+		coordinates.forEach(coordinate -> district.add(transformed(coordinate)));
 		districts.add(district);
+	}
+
+	private Coord transformed(Coordinate coordinate) {
+		return coordinateTransformation.transform(new CoordImpl(coordinate.getLongitude(), coordinate.getLatitude()));
 	}
 
 	private List<Coordinate> coordinates(Polygon geometry) {
@@ -62,5 +73,9 @@ public class City {
 				break;
 			}
 		}
+	}
+
+	public List<District> getDistricts() {
+		return Collections.unmodifiableList(districts);
 	}
 }

@@ -1,22 +1,15 @@
 package de.briemla.matsim.generator;
 
 import java.io.File;
-import java.time.Duration;
-import java.time.LocalTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.matsim.api.core.v01.Id;
-import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
 import org.matsim.api.core.v01.network.Node;
 import org.matsim.api.core.v01.population.Person;
 import org.matsim.api.core.v01.population.Population;
-import org.matsim.core.config.Config;
-import org.matsim.core.config.ConfigUtils;
-import org.matsim.core.controler.Controler;
-import org.matsim.core.scenario.ScenarioUtils;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
 import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 
@@ -36,8 +29,6 @@ import de.micromata.opengis.kml.v_2_2_0.Placemark;
 public class DistrictGenerator {
 	private static final String KML_FILE = "./input/doc.kml";
 
-	private static final String CONFIG_FILE = "./input/config_population_karlsruhe.xml";
-
 	/*
 	 * We enter coordinates in the WGS84 reference system, but we want them to
 	 * appear in the population file projected to UTM33N, because we also
@@ -46,21 +37,23 @@ public class DistrictGenerator {
 	private static final CoordinateTransformation COORDINATE_TRANSFORMATION = TransformationFactory
 			.getCoordinateTransformation(TransformationFactory.WGS84, TransformationFactory.WGS84_UTM33N);
 
-	private final Config config;
-	private final Scenario scenario;
 	private final Network network;
 
-	public DistrictGenerator() {
-		config = ConfigUtils.loadConfig(CONFIG_FILE);
-		scenario = ScenarioUtils.loadScenario(config);
-		network = scenario.getNetwork();
+	public DistrictGenerator(Network network) {
+		this.network = network;
 	}
 
-	private void createSetup() {
+	/**
+	 * Creates a {@link City} from kml {@link District}s and the {@link Network}
+	 *
+	 * @return generated {@link City} where {@link Node}s are inside their
+	 *         {@link District}s
+	 */
+	City createCity() {
 		Folder folder = getFolderFromKml();
 		List<Placemark> placemarks = folder.getFeature().stream().map((feature) -> (Placemark) feature)
 				.filter(placemark -> !"Landkreisgrenze".equals(placemark.getName())).collect(Collectors.toList());
-		moveNodesIntoDistricts(network.getNodes(), placemarks);
+		return moveNodesIntoDistricts(network.getNodes(), placemarks);
 	}
 
 	private Folder getFolderFromKml() {
@@ -85,40 +78,19 @@ public class DistrictGenerator {
 	 *            nodes to be grouped into districts
 	 * @param placemarks
 	 *            coordinates of districts
+	 * @return generated {@link City} where {@link Node}s are inside their
+	 *         {@link District}s
 	 */
-	private void moveNodesIntoDistricts(Map<Id<Node>, ? extends Node> nodes, List<Placemark> placemarks) {
+	private City moveNodesIntoDistricts(Map<Id<Node>, ? extends Node> nodes, List<Placemark> placemarks) {
 		City karlsruhe = createDistrictsFrom(placemarks);
 		karlsruhe.addNodes(nodes);
-	}
-
-	private City createDistrictsFrom(List<Placemark> placemarks) {
-		City karlsruhe = new City();
-		karlsruhe.addDistricts(placemarks);
 		return karlsruhe;
 	}
 
-	private void startSimulation() {
-		Controler controler = new Controler(config);
-		controler.run();
-	}
-
-	public static void main(String[] args) {
-		LocalTime start = LocalTime.now();
-
-		DistrictGenerator generator = new DistrictGenerator();
-		generator.createSetup();
-		LocalTime loadSetup = LocalTime.now();
-
-		// generator.startSimulation();
-
-		LocalTime end = LocalTime.now();
-		Duration setup = Duration.between(start, loadSetup);
-		Duration simulation = Duration.between(loadSetup, end);
-		Duration complete = Duration.between(start, end);
-
-		System.out.println("Creation and simulation took: " + complete.getSeconds() + "s");
-		System.out.println("Creation took: " + setup.getSeconds() + "s");
-		System.out.println("Simulation took: " + simulation.getSeconds() + "s");
+	private City createDistrictsFrom(List<Placemark> placemarks) {
+		City karlsruhe = new City(COORDINATE_TRANSFORMATION);
+		karlsruhe.addDistricts(placemarks);
+		return karlsruhe;
 	}
 
 }
