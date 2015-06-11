@@ -90,9 +90,11 @@ public class PrimitivePopulationGenerator {
 		if (districts.size() < 2) {
 			throw new RuntimeException("Too few districts.");
 		}
-		District firstDistrict = districts.get(0);
-		District secondDistrict = districts.get(1);
-		firstDistrict.nodes().forEach(node -> createPerson(node, secondDistrict));
+		for (int district = 0; district < districts.size(); district++) {
+			District histrict = districts.get(district);
+			District workDistrict = districts.get((district + 1) % districts.size());
+			histrict.nodes().forEach(node -> createPerson(node, workDistrict));
+		}
 		savePopulation();
 	}
 
