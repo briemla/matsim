@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -75,7 +76,19 @@ public class City {
 		}
 	}
 
+	public Boolean isInside(Node node) {
+		return districts.stream().anyMatch(district -> district.isInside(node.getCoord()));
+	}
+
 	public List<District> getDistricts() {
 		return Collections.unmodifiableList(districts);
+	}
+
+	public Stream<Node> nodes() {
+		List<Node> nodes = new ArrayList<Node>();
+		for (District district : districts) {
+			district.nodes().forEach(node -> nodes.add(node));
+		}
+		return nodes.stream();
 	}
 }

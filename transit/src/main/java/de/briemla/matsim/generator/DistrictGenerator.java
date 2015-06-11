@@ -49,7 +49,7 @@ public class DistrictGenerator {
 	 * @return generated {@link City} where {@link Node}s are inside their
 	 *         {@link District}s
 	 */
-	City createCity() {
+	public City createCity() {
 		Folder folder = getFolderFromKml();
 		List<Placemark> placemarks = folder.getFeature().stream().map((feature) -> (Placemark) feature)
 				.filter(placemark -> !"Landkreisgrenze".equals(placemark.getName())).collect(Collectors.toList());
