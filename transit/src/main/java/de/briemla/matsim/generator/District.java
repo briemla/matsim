@@ -5,18 +5,19 @@ import java.awt.geom.Path2D.Double;
 import java.awt.geom.Point2D;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.network.Node;
-
-import de.micromata.opengis.kml.v_2_2_0.Coordinate;
 
 public class District {
 
 	private final Double border;
 	private final List<Node> nodes;
+	private final String name;
 
-	public District() {
+	public District(String name) {
+		this.name = name;
 		border = new Path2D.Double(Path2D.WIND_EVEN_ODD);
 		nodes = new ArrayList<>();
 	}
@@ -33,19 +34,19 @@ public class District {
 	}
 
 	/**
-	 * Add a {@link Coordinate} of the border to this district
+	 * Add a {@link Coord} of the border to this district
 	 *
-	 * @param coordinate
+	 * @param coord
 	 */
-	public void add(Coordinate coordinate) {
-		if (coordinate == null) {
+	public void add(Coord coord) {
+		if (coord == null) {
 			return;
 		}
 		if (border.getCurrentPoint() == null) {
-			border.moveTo(coordinate.getLongitude(), coordinate.getLatitude());
+			border.moveTo(coord.getX(), coord.getY());
 			return;
 		}
-		border.lineTo(coordinate.getLongitude(), coordinate.getLatitude());
+		border.lineTo(coord.getX(), coord.getY());
 	}
 
 	/**
@@ -74,6 +75,19 @@ public class District {
 	 */
 	private static Point2D pointFrom(Coord coordinate) {
 		return new Point2D.Double(coordinate.getX(), coordinate.getY());
+	}
+
+	@Override
+	public String toString() {
+		return "District [name=" + name + "]";
+	}
+
+	public List<Node> getNodes() {
+		return nodes;
+	}
+
+	public Stream<Node> nodes() {
+		return nodes.stream();
 	}
 
 }
