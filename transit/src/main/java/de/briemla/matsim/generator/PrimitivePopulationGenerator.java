@@ -2,7 +2,7 @@ package de.briemla.matsim.generator;
 
 import java.time.Duration;
 import java.time.LocalTime;
-import java.util.ArrayList;
+import java.util.List;
 
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
@@ -64,20 +64,36 @@ public class PrimitivePopulationGenerator {
 	}
 
 	private void createSetup() {
-		createPopulation();
+		City karlsruhe = splitNetwork();
+		createPopulation(karlsruhe);
+	}
+
+	/**
+	 * Split the {@link Network} in its {@link District}s.
+	 *
+	 * @return {@link City} divided into several {@link District}s containing
+	 *         {@link Node}s from the {@link Network}.
+	 */
+	private City splitNetwork() {
+		DistrictGenerator generator = new DistrictGenerator(network);
+		return generator.createCity();
 	}
 
 	/**
 	 * Create a person at each {@link Node}
+	 *
+	 * @param city
+	 *            {@link City} to create population and plans for
 	 */
-	private void createPopulation() {
-		network.getNodes().values().stream().forEach(this::createPerson);
+	private void createPopulation(City city) {
+		List<District> districts = city.getDistricts();
+		if (districts.size() < 2) {
+			throw new RuntimeException("Too few districts.");
+		}
+		District firstDistrict = districts.get(0);
+		District secondDistrict = districts.get(1);
+		firstDistrict.nodes().forEach(node -> createPerson(node, secondDistrict));
 		savePopulation();
-	}
-
-	private void savePopulation() {
-		MatsimWriter popWriter = new PopulationWriter(population, network);
-		popWriter.write(POPULATION_FILE);
 	}
 
 	/**
@@ -86,15 +102,17 @@ public class PrimitivePopulationGenerator {
 	 *
 	 * @param node
 	 *            to derive {@link Person} from
+	 * @param workDistrict
+	 *            {@link District} where each person works
 	 */
-	private void createPerson(Node node) {
+	private void createPerson(Node node, District workDistrict) {
 		if (population.getPersons().containsKey(idFrom(node))) {
 			return;
 		}
 		Person person = populationFactory.createPerson(idFrom(node));
 		population.addPerson(person);
 
-		Plan plan = createPlanFrom(node);
+		Plan plan = createPlanFrom(node, workDistrict);
 		person.addPlan(plan);
 	}
 
@@ -105,16 +123,17 @@ public class PrimitivePopulationGenerator {
 	 *
 	 * @param node
 	 *            start node for plan
+	 * @param workDistrict
 	 * @return new plan which starts at node, travels to center of map and
 	 *         travels back to node.
 	 */
-	private Plan createPlanFrom(Node node) {
+	private Plan createPlanFrom(Node node, District workDistrict) {
 		Plan plan = populationFactory.createPlan();
 		Activity homeMorning = populationFactory.createActivityFromCoord("home", node.getCoord());
 		homeMorning.setEndTime(morningLeaveTime());
 		plan.addActivity(homeMorning);
 		plan.addLeg(populationFactory.createLeg("car"));
-		Activity workActivity = populationFactory.createActivityFromCoord("work", workCoordinate());
+		Activity workActivity = populationFactory.createActivityFromCoord("work", workCoordinate(workDistrict));
 		workActivity.setEndTime(workLeaveTime());
 		plan.addActivity(workActivity);
 		plan.addLeg(populationFactory.createLeg("car"));
@@ -123,8 +142,8 @@ public class PrimitivePopulationGenerator {
 		return plan;
 	}
 
-	private Coord workCoordinate() {
-		ArrayList<? extends Node> nodes = new ArrayList<>(network.getNodes().values());
+	private static Coord workCoordinate(District workDistrict) {
+		List<Node> nodes = workDistrict.getNodes();
 		int nodeIndex = (int) (Math.random() * nodes.size());
 		return nodes.get(nodeIndex).getCoord();
 	}
@@ -135,6 +154,14 @@ public class PrimitivePopulationGenerator {
 
 	private double morningLeaveTime() {
 		return randomize(MORNING_LEAVE_TIME).getSeconds();
+	}
+
+	/**
+	 * Store population in {@link PrimitivePopulationGenerator#POPULATION_FILE}.
+	 */
+	private void savePopulation() {
+		MatsimWriter popWriter = new PopulationWriter(population, network);
+		popWriter.write(POPULATION_FILE);
 	}
 
 	/**
