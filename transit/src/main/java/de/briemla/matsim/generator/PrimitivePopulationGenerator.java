@@ -44,6 +44,9 @@ public class PrimitivePopulationGenerator {
 	 */
 	private static final CoordinateTransformation COORDINATE_TRANSFORMATION = TransformationFactory
 			.getCoordinateTransformation(TransformationFactory.WGS84, TransformationFactory.WGS84_UTM33N);
+	private static final int DAXLANDEN = 11786 / 2;
+	private static final int DURLACH = 29511 / 2;
+	private int personId = 0;
 
 	private final Config config;
 	private final Scenario scenario;
@@ -90,32 +93,57 @@ public class PrimitivePopulationGenerator {
 		if (districts.size() < 2) {
 			throw new RuntimeException("Too few districts.");
 		}
+		createDaxlandenDurlach(districts);
+		// createAll(districts);
+		savePopulation();
+	}
+
+	private void createAll(List<District> districts) {
 		for (int district = 0; district < districts.size(); district++) {
 			District homeDistrict = districts.get(district);
 			District workDistrict = districts.get((district + 1) % districts.size());
-			homeDistrict.nodes().forEach(node -> createPerson(node, workDistrict));
+			homeDistrict.nodes().forEach(node -> createPerson(homeDistrict, workDistrict));
 		}
-		savePopulation();
+	}
+
+	private void createDaxlandenDurlach(List<District> districts) {
+		District homeDistrict = districts.get(1);
+
+		District workDistrict = districts.get(2);
+		for (int inhabitant = 0; inhabitant < DAXLANDEN; inhabitant++) {
+			createPerson(homeDistrict, workDistrict);
+		}
+		for (int inhabitant = 0; inhabitant < DURLACH; inhabitant++) {
+			createPerson(workDistrict, homeDistrict);
+		}
 	}
 
 	/**
 	 * Create a new {@link Person} if there has no {@link Person} been created
 	 * for the current {@link Node}
 	 *
-	 * @param node
-	 *            to derive {@link Person} from
-	 * @param workDistrict
+	 * @param homeDistrict
 	 *            {@link District} where each person works
+	 * @param workDistrict
 	 */
-	private void createPerson(Node node, District workDistrict) {
-		if (population.getPersons().containsKey(idFrom(node))) {
+	private void createPerson(District homeDistrict, District workDistrict) {
+		if (population.getPersons().containsKey(nextPersonId())) {
 			return;
 		}
-		Person person = populationFactory.createPerson(idFrom(node));
+		Person person = populationFactory.createPerson(nextPersonId());
 		population.addPerson(person);
 
-		Plan plan = createPlanFrom(node, workDistrict);
+		Plan plan = createPlanFrom(homeDistrict, workDistrict);
 		person.addPlan(plan);
+	}
+
+	/**
+	 * Convert {@link Node} id to {@link Person} id.
+	 *
+	 * @return new id for a {@link Person}
+	 */
+	private Id<Person> nextPersonId() {
+		return Id.createPersonId(personId++);
 	}
 
 	/**
@@ -123,28 +151,28 @@ public class PrimitivePopulationGenerator {
 	 * center of map. Assuming that node coordinates are already in correct
 	 * coordinate system
 	 *
-	 * @param node
-	 *            start node for plan
 	 * @param workDistrict
+	 * @param workDistrict
+	 *
 	 * @return new plan which starts at node, travels to center of map and
 	 *         travels back to node.
 	 */
-	private Plan createPlanFrom(Node node, District workDistrict) {
+	private Plan createPlanFrom(District homeDistrict, District workDistrict) {
 		Plan plan = populationFactory.createPlan();
-		Activity homeMorning = populationFactory.createActivityFromCoord("home", node.getCoord());
+		Activity homeMorning = populationFactory.createActivityFromCoord("home", coordinate(homeDistrict));
 		homeMorning.setEndTime(morningLeaveTime());
 		plan.addActivity(homeMorning);
 		plan.addLeg(populationFactory.createLeg("car"));
-		Activity workActivity = populationFactory.createActivityFromCoord("work", workCoordinate(workDistrict));
+		Activity workActivity = populationFactory.createActivityFromCoord("work", coordinate(workDistrict));
 		workActivity.setEndTime(workLeaveTime());
 		plan.addActivity(workActivity);
 		plan.addLeg(populationFactory.createLeg("car"));
-		Activity homeEvening = populationFactory.createActivityFromCoord("home", node.getCoord());
+		Activity homeEvening = populationFactory.createActivityFromCoord("home", coordinate(homeDistrict));
 		plan.addActivity(homeEvening);
 		return plan;
 	}
 
-	private static Coord workCoordinate(District workDistrict) {
+	private static Coord coordinate(District workDistrict) {
 		List<Node> nodes = workDistrict.getNodes();
 		int nodeIndex = (int) (Math.random() * nodes.size());
 		return nodes.get(nodeIndex).getCoord();
@@ -175,19 +203,8 @@ public class PrimitivePopulationGenerator {
 	 * @return new instance of {@link Duration} with added minutes
 	 */
 	private static Duration randomize(Duration time) {
-		long minutes = (long) ((Math.random() * 60) - 30);
+		long minutes = (long) ((Math.random() * 120) - 60);
 		return time.plusMinutes(minutes);
-	}
-
-	/**
-	 * Convert {@link Node} id to {@link Person} id.
-	 *
-	 * @param node
-	 *            to take id from
-	 * @return new id for a {@link Person}
-	 */
-	private static Id<Person> idFrom(Node node) {
-		return Id.createPersonId(node.getId().toString());
 	}
 
 	private void startSimulation() {
