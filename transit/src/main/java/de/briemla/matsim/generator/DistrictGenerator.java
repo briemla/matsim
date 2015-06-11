@@ -57,12 +57,25 @@ public class DistrictGenerator {
 	}
 
 	private void createSetup() {
-		Kml kml = Kml.unmarshal(new File(KML_FILE));
-		Document document = (Document) kml.getFeature();
-		Folder folder = (Folder) document.getFeature().get(0);
+		Folder folder = getFolderFromKml();
 		List<Placemark> placemarks = folder.getFeature().stream().map((feature) -> (Placemark) feature)
 				.filter(placemark -> !"Landkreisgrenze".equals(placemark.getName())).collect(Collectors.toList());
 		moveNodesIntoDistricts(network.getNodes(), placemarks);
+	}
+
+	private Folder getFolderFromKml() {
+		Kml kml = Kml.unmarshal(new File(KML_FILE));
+		if (kml.getFeature() instanceof Document) {
+			Document document = (Document) kml.getFeature();
+			if (document.getFeature().isEmpty()) {
+				throw new RuntimeException("Empty document!");
+			}
+			if (document.getFeature().get(0) instanceof Folder) {
+				return (Folder) document.getFeature().get(0);
+			}
+			throw new RuntimeException("No folder found inside kml: " + KML_FILE);
+		}
+		throw new RuntimeException("No document found inside kml: " + KML_FILE);
 	}
 
 	/**
@@ -74,8 +87,6 @@ public class DistrictGenerator {
 	 *            coordinates of districts
 	 */
 	private void moveNodesIntoDistricts(Map<Id<Node>, ? extends Node> nodes, List<Placemark> placemarks) {
-		// TODO: move nodes into districts
-		// network.getNodes().values().stream().forEach();
 		City karlsruhe = createDistrictsFrom(placemarks);
 		karlsruhe.addNodes(nodes);
 	}
