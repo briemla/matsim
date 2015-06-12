@@ -34,7 +34,7 @@ import org.matsim.core.utils.geometry.transformations.TransformationFactory;
 public class PrimitivePopulationGenerator {
 	private static final String CONFIG_FILE = "./input/config_population_karlsruhe.xml";
 	private static final String POPULATION_FILE = "./input/population.xml";
-	private static final Duration MORNING_LEAVE_TIME = Duration.ofHours(6);
+	private static final Duration MORNING_LEAVE_TIME = Duration.ofHours(8);
 	private static final Duration WORK_LEAVE_TIME = Duration.ofHours(16);
 
 	/*
@@ -46,7 +46,7 @@ public class PrimitivePopulationGenerator {
 			.getCoordinateTransformation(TransformationFactory.WGS84, TransformationFactory.WGS84_UTM33N);
 	private static final int DAXLANDEN = 11786 / 2;
 	private static final int DURLACH = 29511 / 2;
-	private int personId = 0;
+	private int nextPersonId = 0;
 
 	private final Config config;
 	private final Scenario scenario;
@@ -93,8 +93,8 @@ public class PrimitivePopulationGenerator {
 		if (districts.size() < 2) {
 			throw new RuntimeException("Too few districts.");
 		}
-		createDaxlandenDurlach(districts);
-		// createAll(districts);
+		// createDaxlandenDurlach(districts);
+		createAll(districts);
 		savePopulation();
 	}
 
@@ -143,7 +143,7 @@ public class PrimitivePopulationGenerator {
 	 * @return new id for a {@link Person}
 	 */
 	private Id<Person> nextPersonId() {
-		return Id.createPersonId(personId++);
+		return Id.createPersonId(nextPersonId++);
 	}
 
 	/**
