@@ -3,32 +3,55 @@
 
 <transitSchedule>
 	<transitStops>
-		<stopFacility id="1" x="1050.0" y="1050.0" linkRefId="11" isBlocking="false"/>
-		<stopFacility id="3" x="3950.0" y="1050.0" linkRefId="33" isBlocking="false"/>
+		<stopFacility id="1447845533" x="22750.23272392043" y="5447994.623922647" linkRefId="999993" isBlocking="false"/>
+		<stopFacility id="1670591290" x="23143.08676112647" y="5447880.747882644" linkRefId="999990" isBlocking="false"/>
 	</transitStops>
 	<transitLine id="Tram 1">
 		<transitRoute id="2">
 			<transportMode>pt</transportMode>
 			<routeProfile>
-				<stop refId="1" arrivalOffset="00:00:00" departureOffset="00:00:00" awaitDeparture="true"/>
-				<stop refId="3" arrivalOffset="00:09:00" departureOffset="00:00:00" awaitDeparture="true"/>
+				<stop refId="1670591290" arrivalOffset="00:00:00" departureOffset="00:00:00" awaitDeparture="true"/>
+				<stop refId="1447845533" arrivalOffset="00:01:00" departureOffset="00:00:00" awaitDeparture="true"/>
 			</routeProfile>
 			<route>
-				<link refId="11"/>
-				<link refId="12"/>
-				<link refId="23"/>
-				<link refId="33"/>
+				<link refId="999990"/>
+				<link refId="999991"/>
+				<link refId="999993"/>
 			</route>
 			<departures>
 				<departure id="0" departureTime="06:00:00" vehicleRefId="tr_1"/>
-				<departure id="1" departureTime="06:05:00" vehicleRefId="tr_1"/>
+				<departure id="1" departureTime="06:05:00" vehicleRefId="tr_2"/>
 				<departure id="2" departureTime="06:10:00" vehicleRefId="tr_1"/>
-				<departure id="3" departureTime="06:15:00" vehicleRefId="tr_1"/>
+				<departure id="3" departureTime="06:15:00" vehicleRefId="tr_2"/>
 				<departure id="4" departureTime="06:20:00" vehicleRefId="tr_1"/>
-				<departure id="5" departureTime="06:25:00" vehicleRefId="tr_1"/>
+				<departure id="5" departureTime="06:25:00" vehicleRefId="tr_2"/>
 				<departure id="6" departureTime="06:30:00" vehicleRefId="tr_1"/>
-				<departure id="7" departureTime="06:35:00" vehicleRefId="tr_1"/>
+				<departure id="7" departureTime="06:35:00" vehicleRefId="tr_2"/>
 				<departure id="8" departureTime="06:40:00" vehicleRefId="tr_1"/>
+				<departure id="9" departureTime="06:45:00" vehicleRefId="tr_2"/>
+			</departures>
+		</transitRoute>
+		<transitRoute id="3">
+			<transportMode>pt</transportMode>
+			<routeProfile>
+				<stop refId="1447845533" arrivalOffset="00:00:00" departureOffset="00:00:00" awaitDeparture="true"/>
+				<stop refId="1670591290" arrivalOffset="00:01:00" departureOffset="00:00:00" awaitDeparture="true"/>
+			</routeProfile>
+			<route>
+				<link refId="999993"/>
+				<link refId="999992"/>
+				<link refId="999990"/>
+			</route>
+			<departures>
+				<departure id="0" departureTime="06:00:00" vehicleRefId="tr_2"/>
+				<departure id="1" departureTime="06:05:00" vehicleRefId="tr_1"/>
+				<departure id="2" departureTime="06:10:00" vehicleRefId="tr_2"/>
+				<departure id="3" departureTime="06:15:00" vehicleRefId="tr_1"/>
+				<departure id="4" departureTime="06:20:00" vehicleRefId="tr_2"/>
+				<departure id="5" departureTime="06:25:00" vehicleRefId="tr_1"/>
+				<departure id="6" departureTime="06:30:00" vehicleRefId="tr_2"/>
+				<departure id="7" departureTime="06:35:00" vehicleRefId="tr_1"/>
+				<departure id="8" departureTime="06:40:00" vehicleRefId="tr_2"/>
 				<departure id="9" departureTime="06:45:00" vehicleRefId="tr_1"/>
 			</departures>
 		</transitRoute>

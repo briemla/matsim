@@ -13,7 +13,7 @@
 	</module>
 
 	<module name="network">
-		<param name="inputNetworkFile" value="&INBASE;/multimodalnetwork.xml" />
+		<param name="inputNetworkFile" value="&INBASE;/karlsruhe.xml" />
 	</module>
 
 	<module name="plans">
@@ -28,7 +28,7 @@
 	<module name="controler">
 		<param name="outputDirectory" value="&OUTBASE;" />
 		<param name="firstIteration" value="0" />
-		<param name="lastIteration" value="10" />
+		<param name="lastIteration" value="0" />
 		<param name="eventsFileFormat" value="xml" />
 		<param name="mobsim" value="qsim" />
 		<param name="overwriteFiles" value="deleteDirectoryIfExists" />

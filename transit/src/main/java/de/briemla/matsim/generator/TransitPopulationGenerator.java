@@ -71,7 +71,7 @@ public class TransitPopulationGenerator {
 	 * Create a person at each {@link Node}
 	 */
 	private void createPopulation() {
-		network.getNodes().values().stream().forEach(this::createPerson);
+		// network.getNodes().values().stream().forEach(this::createPerson);
 		savePopulation();
 	}
 
