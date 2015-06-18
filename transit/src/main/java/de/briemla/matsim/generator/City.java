@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import org.matsim.api.core.v01.Coord;
@@ -24,11 +26,15 @@ public class City {
 	private final List<District> districts;
 	private final CoordinateTransformation coordinateTransformation;
 	private final Statistic statistic;
+	private List<District> availableWorkDistricts;
+	private List<District> availableHomeDistricts;
 
 	public City(Statistic statistic, CoordinateTransformation coordinateTransformation) {
 		this.statistic = statistic;
 		this.coordinateTransformation = coordinateTransformation;
 		districts = new ArrayList<>();
+		availableWorkDistricts = new ArrayList<>();
+		availableHomeDistricts = new ArrayList<>();
 	}
 
 	public void addDistricts(List<Placemark> placemarks) {
@@ -47,7 +53,17 @@ public class City {
 		Census census = statistic.findCensus(name);
 		District district = new District(name, census);
 		coordinates.forEach(coordinate -> district.add(transformed(coordinate)));
+		add(district);
+	}
+
+	private void add(District district) {
 		districts.add(district);
+		if (district.hasNonWorkingInhabitants()) {
+			availableHomeDistricts.add(district);
+		}
+		if (district.hasFreeWorkplace()) {
+			availableWorkDistricts.add(district);
+		}
 	}
 
 	private Coord transformed(Coordinate coordinate) {
@@ -93,5 +109,25 @@ public class City {
 			district.nodes().forEach(node -> nodes.add(node));
 		}
 		return nodes.stream();
+	}
+
+	public District getRandomAvailableHomeDistrict() {
+		int districtIndex = new Random().nextInt(availableHomeDistricts.size());
+		return availableHomeDistricts.get(districtIndex);
+	}
+
+	public int getInhabitants() {
+		return districts.stream().collect(Collectors.summingInt(District::getInhabitants));
+	}
+
+	public List<District> getAvailableWorkDistricts() {
+		return availableWorkDistricts;
+	}
+
+	public void cleanUpAvailableDistricts() {
+		availableWorkDistricts = availableWorkDistricts.stream().filter(District::hasFreeWorkplace)
+				.collect(Collectors.toList());
+		availableHomeDistricts = availableHomeDistricts.stream().filter(District::hasNonWorkingInhabitants)
+				.collect(Collectors.toList());
 	}
 }
