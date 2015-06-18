@@ -44,8 +44,9 @@ public class PrimitivePopulationGenerator {
 	 */
 	private static final CoordinateTransformation COORDINATE_TRANSFORMATION = TransformationFactory
 			.getCoordinateTransformation(TransformationFactory.WGS84, TransformationFactory.WGS84_UTM33N);
-	private static final int DAXLANDEN = 11786 / 2;
-	private static final int DURLACH = 29511 / 2;
+	private static final int SCALE_FACTOR = 10;
+	private static final int DAXLANDEN = 11786 / SCALE_FACTOR;
+	private static final int DURLACH = 29511 / SCALE_FACTOR;
 	private int nextPersonId = 0;
 
 	private final Config config;
@@ -93,8 +94,8 @@ public class PrimitivePopulationGenerator {
 		if (districts.size() < 2) {
 			throw new RuntimeException("Too few districts.");
 		}
-		// createDaxlandenDurlach(districts);
-		createAll(districts);
+		createDaxlandenDurlach(districts);
+		// createAll(districts);
 		savePopulation();
 	}
 
