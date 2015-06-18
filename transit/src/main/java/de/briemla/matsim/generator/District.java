@@ -15,9 +15,11 @@ public class District {
 	private final Double border;
 	private final List<Node> nodes;
 	private final String name;
+	private final Census census;
 
 	public District(String name, Census census) {
 		this.name = name;
+		this.census = census;
 		border = new Path2D.Double(Path2D.WIND_EVEN_ODD);
 		nodes = new ArrayList<>();
 	}
@@ -88,6 +90,10 @@ public class District {
 
 	public Stream<Node> nodes() {
 		return nodes.stream();
+	}
+
+	public int getInhabitants() {
+		return census.getInhabitants();
 	}
 
 }
