@@ -96,7 +96,11 @@ public class DistrictTest {
 	}
 
 	private static District newDistrict() {
-		return new District("Test");
+		return new District("Test", dummyCensus());
+	}
+
+	private static Census dummyCensus() {
+		return new Census("Test", 123, 321);
 	}
 
 	private static Coord coord() {

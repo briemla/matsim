@@ -67,19 +67,22 @@ public class PrimitivePopulationGenerator {
 		populationFactory = population.getFactory();
 	}
 
-	private void createSetup() {
-		City karlsruhe = splitNetwork();
+	private void createSetup(Statistic statistics) {
+		City karlsruhe = splitNetwork(network, statistics);
 		createPopulation(karlsruhe);
 	}
 
 	/**
 	 * Split the {@link Network} in its {@link District}s.
 	 *
+	 * @param statistic
+	 *            provides information about inhabitants and work places
+	 *
 	 * @return {@link City} divided into several {@link District}s containing
 	 *         {@link Node}s from the {@link Network}.
 	 */
-	private City splitNetwork() {
-		DistrictGenerator generator = new DistrictGenerator(network);
+	private static City splitNetwork(Network network, Statistic statistic) {
+		DistrictGenerator generator = new DistrictGenerator(network, statistic);
 		return generator.createCity();
 	}
 
@@ -215,9 +218,10 @@ public class PrimitivePopulationGenerator {
 
 	public static void main(String[] args) {
 		LocalTime start = LocalTime.now();
+		Statistic statistic = Statistic.karlsruhe();
 
 		PrimitivePopulationGenerator generator = new PrimitivePopulationGenerator();
-		generator.createSetup();
+		generator.createSetup(statistic);
 		LocalTime afterSetup = LocalTime.now();
 
 		generator.startSimulation();

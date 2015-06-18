@@ -23,8 +23,10 @@ public class City {
 
 	private final List<District> districts;
 	private final CoordinateTransformation coordinateTransformation;
+	private final Statistic statistic;
 
-	public City(CoordinateTransformation coordinateTransformation) {
+	public City(Statistic statistic, CoordinateTransformation coordinateTransformation) {
+		this.statistic = statistic;
 		this.coordinateTransformation = coordinateTransformation;
 		districts = new ArrayList<>();
 	}
@@ -42,7 +44,8 @@ public class City {
 	}
 
 	private void add(String name, List<Coordinate> coordinates) {
-		District district = new District(name);
+		Census census = statistic.findCensus(name);
+		District district = new District(name, census);
 		coordinates.forEach(coordinate -> district.add(transformed(coordinate)));
 		districts.add(district);
 	}

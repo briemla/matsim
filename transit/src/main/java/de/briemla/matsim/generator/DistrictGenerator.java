@@ -38,9 +38,11 @@ public class DistrictGenerator {
 			.getCoordinateTransformation(TransformationFactory.WGS84, TransformationFactory.WGS84_UTM33N);
 
 	private final Network network;
+	private final Statistic statistic;
 
-	public DistrictGenerator(Network network) {
+	public DistrictGenerator(Network network, Statistic statistic) {
 		this.network = network;
+		this.statistic = statistic;
 	}
 
 	/**
@@ -88,7 +90,7 @@ public class DistrictGenerator {
 	}
 
 	private City createDistrictsFrom(List<Placemark> placemarks) {
-		City karlsruhe = new City(COORDINATE_TRANSFORMATION);
+		City karlsruhe = new City(statistic, COORDINATE_TRANSFORMATION);
 		karlsruhe.addDistricts(placemarks);
 		return karlsruhe;
 	}

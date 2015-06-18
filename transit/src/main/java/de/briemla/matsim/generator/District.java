@@ -16,7 +16,7 @@ public class District {
 	private final List<Node> nodes;
 	private final String name;
 
-	public District(String name) {
+	public District(String name, Census census) {
 		this.name = name;
 		border = new Path2D.Double(Path2D.WIND_EVEN_ODD);
 		nodes = new ArrayList<>();

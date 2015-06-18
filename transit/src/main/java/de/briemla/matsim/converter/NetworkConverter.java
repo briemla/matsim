@@ -20,6 +20,7 @@ import org.matsim.core.utils.io.OsmNetworkReader;
 
 import de.briemla.matsim.generator.City;
 import de.briemla.matsim.generator.DistrictGenerator;
+import de.briemla.matsim.generator.Statistic;
 
 public class NetworkConverter {
 
@@ -58,7 +59,7 @@ public class NetworkConverter {
 	}
 
 	private static void shrinkToKarlsruhe(Network osmNetwork) {
-		DistrictGenerator districtGenerator = new DistrictGenerator(osmNetwork);
+		DistrictGenerator districtGenerator = new DistrictGenerator(osmNetwork, Statistic.karlsruhe());
 		City karlsruhe = districtGenerator.createCity();
 		List<Id<Node>> nodesToRemove = osmNetwork.getNodes().values().stream()
 				.filter(node -> !karlsruhe.isInside(node)).map(Node::getId).collect(Collectors.toList());
