@@ -30,8 +30,11 @@ public class NetworkConverter {
 		LocalTime start = LocalTime.now();
 		Network osmNetwork = loadOsmNetwork();
 		LocalTime afterLoad = LocalTime.now();
-		shrinkToKarlsruhe(osmNetwork);
+		// shrinkToKarlsruhe(osmNetwork);
 		LocalTime afterShrink = LocalTime.now();
+
+		Node startNode = osmNetwork.getNodes().get(Id.createNodeId(1670591290));
+		osmNetwork.getNodes().get(Id.createLinkId(131484444));
 		new NetworkCleaner().run(osmNetwork);
 		LocalTime afterClean = LocalTime.now();
 		write(osmNetwork);
@@ -68,6 +71,8 @@ public class NetworkConverter {
 		Scenario sc = ScenarioUtils.createScenario(config);
 		Network administrativeRegion = sc.getNetwork();
 		OsmNetworkReader onr = new OsmNetworkReader(administrativeRegion, TRANSFORM_TO_WSG84_UTM33N);
+		// TODO change OSMNetworkReader to convert unused nodes. Otherwise
+		// transit nodes will be removed.
 		onr.parse(osm);
 		return administrativeRegion;
 	}
