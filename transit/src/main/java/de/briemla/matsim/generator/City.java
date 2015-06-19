@@ -11,6 +11,8 @@ import java.util.stream.Stream;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Node;
+import org.matsim.api.core.v01.population.Person;
+import org.matsim.api.core.v01.population.Population;
 import org.matsim.core.utils.geometry.CoordImpl;
 import org.matsim.core.utils.geometry.CoordinateTransformation;
 
@@ -129,5 +131,18 @@ public class City {
 				.collect(Collectors.toList());
 		availableHomeDistricts = availableHomeDistricts.stream().filter(District::hasNonWorkingInhabitants)
 				.collect(Collectors.toList());
+	}
+
+	/**
+	 * Create all inhabitants of the {@link City}
+	 *
+	 * @param population
+	 *            {@link Population} element to add {@link Person}s to
+	 */
+	public void createPopulation(Population population) {
+		for (int inhabitant = 0; inhabitant < getInhabitants(); inhabitant++) {
+			getRandomAvailableHomeDistrict().createPerson(population, getAvailableWorkDistricts());
+			cleanUpAvailableDistricts();
+		}
 	}
 }

@@ -47,7 +47,7 @@ public class PrimitivePopulationGenerator {
 
 	private void createSetup(Statistic statistics) {
 		City karlsruhe = splitNetwork(network, statistics);
-		createPopulation(karlsruhe);
+		karlsruhe.createPopulation(population);
 		savePopulation();
 	}
 
@@ -63,19 +63,6 @@ public class PrimitivePopulationGenerator {
 	private static City splitNetwork(Network network, Statistic statistic) {
 		DistrictGenerator generator = new DistrictGenerator(network, statistic);
 		return generator.createCity();
-	}
-
-	/**
-	 * Create a person at each {@link Node}
-	 *
-	 * @param city
-	 *            {@link City} to create population and plans for
-	 */
-	private void createPopulation(City city) {
-		for (int inhabitant = 0; inhabitant < city.getInhabitants(); inhabitant++) {
-			city.getRandomAvailableHomeDistrict().createPerson(population, city.getAvailableWorkDistricts());
-			city.cleanUpAvailableDistricts();
-		}
 	}
 
 	/**
