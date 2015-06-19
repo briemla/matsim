@@ -30,8 +30,6 @@ public class District {
 	private static final double[] HOME_LEAVE_TIME_PROBABILITIES = new double[] { 0.0, 0.005, 0.005, 0.005, 0.015,
 		0.075, 0.235, 0.305, 0.12, 0.04, 0.03, 0.01, 0.03, 0.05, 0.02, 0.01, 0.005, 0.01, 0.005, 0.005, 0.01,
 		0.005, 0.0, 0.005 };
-	private static final Duration MORNING_LEAVE_TIME = Duration.ofHours(8);
-	private static final Duration WORK_LEAVE_TIME = Duration.ofHours(16);
 
 	private final Double border;
 	private final List<Node> nodes;
@@ -224,27 +222,27 @@ public class District {
 	}
 
 	private Duration workLeaveTime(Duration homeLeaveTime) {
-		long leaveMinute = new Random().nextInt(MINUTES_IN_HOUR);
-		return homeLeaveTime.plusMinutes(MINUTES_TO_WORK).plusHours(HOURS_OF_WORK).plusMinutes(MINUTES_OF_PAUSE).plusMinutes(leaveMinute);
+		return randomizeInNextHour(homeLeaveTime.plusMinutes(MINUTES_TO_WORK).plusHours(HOURS_OF_WORK)
+				.plusMinutes(MINUTES_OF_PAUSE));
 	}
 
 	private Duration homeLeaveTime() {
 		int leaveHour = homeLeaveTimeDistribution.sample();
-		int leaveMinute = new Random().nextInt(MINUTES_IN_HOUR);
-		return Duration.ofHours(leaveHour).plusMinutes(leaveMinute);
+		return randomizeInNextHour(Duration.ofHours(leaveHour));
 	}
 
 	/**
-	 * Randomly add a time between -60 and + 60 minutes. The method will return
-	 * a new {@link Duration} instance.
+	 * Return a new {@link Duration} within the next hour based on the given
+	 * {@link Duration}.
 	 *
-	 * @param time
-	 *            base {@link Duration} to add minutes to
-	 * @return new instance of {@link Duration} with added minutes
+	 * @param leaveTime
+	 *            start hour to add a random amount of time within an hour
+	 * @return new {@link Duration} which is within an hour after the given
+	 *         {@link Duration}
 	 */
-	private static Duration randomize(Duration time) {
-		long minutes = (long) ((Math.random() * 120) - MINUTES_IN_HOUR);
-		return time.plusMinutes(minutes);
+	private static Duration randomizeInNextHour(Duration leaveTime) {
+		int leaveMinute = new Random().nextInt(MINUTES_IN_HOUR);
+		return leaveTime.plusMinutes(leaveMinute);
 	}
 
 	public String getName() {

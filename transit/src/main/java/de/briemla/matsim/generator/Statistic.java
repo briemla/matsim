@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class Statistic {
 
-	private static final int SCALE_FACTOR = 50;
+	private static final int SCALE_FACTOR = 2;
 
 	public static Statistic karlsruhe() {
 		Statistic karlruhe = new Statistic();
