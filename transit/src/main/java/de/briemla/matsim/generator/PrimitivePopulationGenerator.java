@@ -2,6 +2,7 @@ package de.briemla.matsim.generator;
 
 import java.time.Duration;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 
 import org.matsim.api.core.v01.Scenario;
 import org.matsim.api.core.v01.network.Network;
@@ -105,9 +106,11 @@ public class PrimitivePopulationGenerator {
 		Duration simulation = Duration.between(afterSetup, end);
 		Duration complete = Duration.between(start, end);
 
+		LocalTime simulationTime = LocalTime.ofSecondOfDay(simulation.getSeconds());
+
 		System.out.println("Creation and simulation took: " + complete.getSeconds() + "s");
 		System.out.println("Creation took: " + setup.getSeconds() + "s");
-		System.out.println("Simulation took: " + simulation.getSeconds() + "s");
+		System.out.println("Simulation took: " + simulationTime.format(DateTimeFormatter.ISO_TIME));
 	}
 
 }

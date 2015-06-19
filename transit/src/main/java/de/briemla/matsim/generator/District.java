@@ -22,10 +22,14 @@ import org.matsim.api.core.v01.population.PopulationFactory;
 
 public class District {
 
+	private static final int MINUTES_OF_PAUSE = 30;
+	private static final int HOURS_OF_WORK = 8;
+	private static final int MINUTES_TO_WORK = 30;
+	private static final int MINUTES_IN_HOUR = 60;
 	private static final int[] HOME_LEAVE_HOURS = IntStream.range(0, 24).toArray();
 	private static final double[] HOME_LEAVE_TIME_PROBABILITIES = new double[] { 0.0, 0.005, 0.005, 0.005, 0.015,
-			0.075, 0.235, 0.305, 0.12, 0.04, 0.03, 0.01, 0.03, 0.05, 0.02, 0.01, 0.005, 0.01, 0.005, 0.005, 0.01,
-			0.005, 0.0, 0.005 };
+		0.075, 0.235, 0.305, 0.12, 0.04, 0.03, 0.01, 0.03, 0.05, 0.02, 0.01, 0.005, 0.01, 0.005, 0.005, 0.01,
+		0.005, 0.0, 0.005 };
 	private static final Duration MORNING_LEAVE_TIME = Duration.ofHours(8);
 	private static final Duration WORK_LEAVE_TIME = Duration.ofHours(16);
 
@@ -195,11 +199,12 @@ public class District {
 	private Plan createPlanFrom(District homeDistrict, District workDistrict, PopulationFactory populationFactory) {
 		Plan plan = populationFactory.createPlan();
 		Activity homeMorning = populationFactory.createActivityFromCoord("home", coordinate(homeDistrict));
-		homeMorning.setEndTime(homeLeaveTime());
+		Duration homeLeaveTime = homeLeaveTime();
+		homeMorning.setEndTime(homeLeaveTime.getSeconds());
 		plan.addActivity(homeMorning);
 		plan.addLeg(populationFactory.createLeg("car"));
 		Activity workActivity = populationFactory.createActivityFromCoord("work", coordinate(workDistrict));
-		workActivity.setEndTime(workLeaveTime());
+		workActivity.setEndTime(workLeaveTime(homeLeaveTime).getSeconds());
 		workDistrict.increaseNumberOfWorkers();
 		plan.addActivity(workActivity);
 		plan.addLeg(populationFactory.createLeg("car"));
@@ -218,14 +223,15 @@ public class District {
 		return nodes.get(nodeIndex).getCoord();
 	}
 
-	private double workLeaveTime() {
-		return randomize(WORK_LEAVE_TIME).getSeconds();
+	private Duration workLeaveTime(Duration homeLeaveTime) {
+		long leaveMinute = new Random().nextInt(MINUTES_IN_HOUR);
+		return homeLeaveTime.plusMinutes(MINUTES_TO_WORK).plusHours(HOURS_OF_WORK).plusMinutes(MINUTES_OF_PAUSE).plusMinutes(leaveMinute);
 	}
 
-	private double homeLeaveTime() {
+	private Duration homeLeaveTime() {
 		int leaveHour = homeLeaveTimeDistribution.sample();
-		int leaveMinute = new Random().nextInt(60);
-		return Duration.ofHours(leaveHour).plusMinutes(leaveMinute).getSeconds();
+		int leaveMinute = new Random().nextInt(MINUTES_IN_HOUR);
+		return Duration.ofHours(leaveHour).plusMinutes(leaveMinute);
 	}
 
 	/**
@@ -237,7 +243,7 @@ public class District {
 	 * @return new instance of {@link Duration} with added minutes
 	 */
 	private static Duration randomize(Duration time) {
-		long minutes = (long) ((Math.random() * 120) - 60);
+		long minutes = (long) ((Math.random() * 120) - MINUTES_IN_HOUR);
 		return time.plusMinutes(minutes);
 	}
 
