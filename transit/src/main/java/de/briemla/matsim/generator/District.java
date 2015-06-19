@@ -7,8 +7,10 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import org.apache.commons.math3.distribution.EnumeratedIntegerDistribution;
 import org.matsim.api.core.v01.Coord;
 import org.matsim.api.core.v01.Id;
 import org.matsim.api.core.v01.network.Node;
@@ -20,6 +22,10 @@ import org.matsim.api.core.v01.population.PopulationFactory;
 
 public class District {
 
+	private static final int[] HOME_LEAVE_HOURS = IntStream.range(0, 24).toArray();
+	private static final double[] HOME_LEAVE_TIME_PROBABILITIES = new double[] { 0.0, 0.005, 0.005, 0.005, 0.015,
+			0.075, 0.235, 0.305, 0.12, 0.04, 0.03, 0.01, 0.03, 0.05, 0.02, 0.01, 0.005, 0.01, 0.005, 0.005, 0.01,
+			0.005, 0.0, 0.005 };
 	private static final Duration MORNING_LEAVE_TIME = Duration.ofHours(8);
 	private static final Duration WORK_LEAVE_TIME = Duration.ofHours(16);
 
@@ -29,12 +35,14 @@ public class District {
 	private final Census census;
 	private int workingInhabitants = 0;
 	private int workers = 0;
+	private final EnumeratedIntegerDistribution homeLeaveTimeDistribution;
 
 	public District(String name, Census census) {
 		this.name = name;
 		this.census = census;
 		border = new Path2D.Double(Path2D.WIND_EVEN_ODD);
 		nodes = new ArrayList<>();
+		homeLeaveTimeDistribution = new EnumeratedIntegerDistribution(HOME_LEAVE_HOURS, HOME_LEAVE_TIME_PROBABILITIES);
 	}
 
 	/**
@@ -187,7 +195,7 @@ public class District {
 	private Plan createPlanFrom(District homeDistrict, District workDistrict, PopulationFactory populationFactory) {
 		Plan plan = populationFactory.createPlan();
 		Activity homeMorning = populationFactory.createActivityFromCoord("home", coordinate(homeDistrict));
-		homeMorning.setEndTime(morningLeaveTime());
+		homeMorning.setEndTime(homeLeaveTime());
 		plan.addActivity(homeMorning);
 		plan.addLeg(populationFactory.createLeg("car"));
 		Activity workActivity = populationFactory.createActivityFromCoord("work", coordinate(workDistrict));
@@ -214,8 +222,10 @@ public class District {
 		return randomize(WORK_LEAVE_TIME).getSeconds();
 	}
 
-	private double morningLeaveTime() {
-		return randomize(MORNING_LEAVE_TIME).getSeconds();
+	private double homeLeaveTime() {
+		int leaveHour = homeLeaveTimeDistribution.sample();
+		int leaveMinute = new Random().nextInt(60);
+		return Duration.ofHours(leaveHour).plusMinutes(leaveMinute).getSeconds();
 	}
 
 	/**
