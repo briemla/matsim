@@ -1,5 +1,6 @@
 package de.briemla.matsim.generator;
 
+import java.io.File;
 import java.time.Duration;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -48,7 +49,7 @@ public class PrimitivePopulationGenerator {
 	private void createSetup(Statistic statistics) {
 		City karlsruhe = splitNetwork(network, statistics);
 		karlsruhe.createPopulation(population);
-		savePopulation();
+		savePopulation(karlsruhe);
 	}
 
 	/**
@@ -67,10 +68,14 @@ public class PrimitivePopulationGenerator {
 
 	/**
 	 * Store population in {@link PrimitivePopulationGenerator#POPULATION_FILE}.
+	 *
+	 * @param karlsruhe
 	 */
-	private void savePopulation() {
+	private void savePopulation(City karlsruhe) {
 		MatsimWriter popWriter = new PopulationWriter(population, network);
 		popWriter.write(POPULATION_FILE);
+		File inputDirectory = new File("input");
+		karlsruhe.writeMatricesTo(inputDirectory);
 	}
 
 	private void startSimulation() {

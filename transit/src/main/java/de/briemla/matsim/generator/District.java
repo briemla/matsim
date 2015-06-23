@@ -3,9 +3,15 @@ package de.briemla.matsim.generator;
 import java.awt.geom.Path2D;
 import java.awt.geom.Path2D.Double;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
+import java.io.BufferedWriter;
+import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -22,6 +28,26 @@ import org.matsim.api.core.v01.population.PopulationFactory;
 
 public class District {
 
+	private static final String SEPARATOR = ";";
+
+	private final class DistanceComparator implements Comparator<District> {
+		private final District homeDistrict;
+
+		public DistanceComparator(District district) {
+			homeDistrict = district;
+		}
+
+		@Override
+		public int compare(District district1, District district2) {
+			Point2D homeCenter = homeDistrict.getCenter();
+			Point2D district1Center = district1.getCenter();
+			Point2D district2Center = district2.getCenter();
+			java.lang.Double distanceToDistrict1 = homeCenter.distance(district1Center);
+			java.lang.Double distanceToDistrict2 = homeCenter.distance(district2Center);
+			return distanceToDistrict1.compareTo(distanceToDistrict2);
+		}
+	}
+
 	private static final int MINUTES_OF_PAUSE = 30;
 	private static final int HOURS_OF_WORK = 8;
 	private static final int MINUTES_TO_WORK = 30;
@@ -31,6 +57,10 @@ public class District {
 		0.075, 0.235, 0.305, 0.12, 0.04, 0.03, 0.01, 0.03, 0.05, 0.02, 0.01, 0.005, 0.01, 0.005, 0.005, 0.01,
 		0.005, 0.0, 0.005 };
 
+	private static final int[] HOME_WORK_DISTANCES = IntStream.range(0, 27).toArray();
+	private static final double[] HOME_WORK_DISTANCE_SCORE = new double[] { 5, 23, 35, 38, 43, 45.5, 45, 42.5, 38,
+		34.5, 26.5, 21.5, 19, 16, 13, 10, 7.5, 5.5, 4, 3, 2, 1.5, 1, 0.5, 0.35, 0.2, 0.1 };
+
 	private final Double border;
 	private final List<Node> nodes;
 	private final String name;
@@ -38,6 +68,9 @@ public class District {
 	private int workingInhabitants = 0;
 	private int workers = 0;
 	private final EnumeratedIntegerDistribution homeLeaveTimeDistribution;
+	private final EnumeratedIntegerDistribution homeWorkDistanceScores;
+	private final Map<District, Integer> districtToWorker;
+	private final DistanceComparator distanceComparator;
 
 	public District(String name, Census census) {
 		this.name = name;
@@ -45,6 +78,14 @@ public class District {
 		border = new Path2D.Double(Path2D.WIND_EVEN_ODD);
 		nodes = new ArrayList<>();
 		homeLeaveTimeDistribution = new EnumeratedIntegerDistribution(HOME_LEAVE_HOURS, HOME_LEAVE_TIME_PROBABILITIES);
+		homeWorkDistanceScores = new EnumeratedIntegerDistribution(HOME_WORK_DISTANCES, HOME_WORK_DISTANCE_SCORE);
+		districtToWorker = new HashMap<>();
+		distanceComparator = new DistanceComparator(this);
+	}
+
+	public Point2D getCenter() {
+		Rectangle2D boundingBox = border.getBounds2D();
+		return new Point2D.Double(boundingBox.getCenterX(), boundingBox.getCenterY());
 	}
 
 	/**
@@ -147,12 +188,23 @@ public class District {
 	 *             when selected district does not have a workplace left.
 	 */
 	private District findWorkDistrict(List<District> districts) {
-		int districtIndex = new Random().nextInt(districts.size());
+		districts.sort(distanceComparator);
+		int districtIndex = homeWorkDistanceScores.sample();
 		District district = districts.get(districtIndex);
-		if (district.hasFreeWorkplace()) {
-			return district;
+		while (!district.hasFreeWorkplace()) {
+			districtIndex = homeWorkDistanceScores.sample();
+			district = districts.get(districtIndex);
 		}
-		throw new IllegalArgumentException("Selected district does not have a workplace left: " + district);
+		return district;
+	}
+
+	private void registerNewWorkerIn(District district) {
+		if (!districtToWorker.containsKey(district)) {
+			districtToWorker.put(district, new Integer(0));
+		}
+		Integer workers = districtToWorker.get(district);
+		workers++;
+		districtToWorker.put(district, workers);
 	}
 
 	/**
@@ -168,6 +220,7 @@ public class District {
 		PopulationFactory factory = population.getFactory();
 		Person person = factory.createPerson(nextPersonId());
 		population.addPerson(person);
+		registerNewWorkerIn(workDistrict);
 
 		Plan plan = createPlanFrom(homeDistrict, workDistrict, factory);
 		person.addPlan(plan);
@@ -196,16 +249,38 @@ public class District {
 	 */
 	private Plan createPlanFrom(District homeDistrict, District workDistrict, PopulationFactory populationFactory) {
 		Plan plan = populationFactory.createPlan();
-		Activity homeMorning = populationFactory.createActivityFromCoord("home", coordinate(homeDistrict));
 		Duration homeLeaveTime = homeLeaveTime();
+		Duration workLeaveTime = workLeaveTime(homeLeaveTime);
+
+		if (workLeaveTime.toDays() > 0) {
+			Duration dailyWorkLeaveTime = workLeaveTime.minusDays(1);
+			Activity workActivity = populationFactory.createActivityFromCoord("work", coordinate(workDistrict));
+			workActivity.setEndTime(dailyWorkLeaveTime.getSeconds());
+			workDistrict.increaseNumberOfWorkers();
+			plan.addActivity(workActivity);
+			plan.addLeg(populationFactory.createLeg("car"));
+
+			Activity homeMorning = populationFactory.createActivityFromCoord("home", coordinate(homeDistrict));
+			homeMorning.setEndTime(homeLeaveTime.getSeconds());
+			plan.addActivity(homeMorning);
+			plan.addLeg(populationFactory.createLeg("car"));
+
+			Activity homeEvening = populationFactory.createActivityFromCoord("work", coordinate(workDistrict));
+			plan.addActivity(homeEvening);
+			return plan;
+		}
+
+		Activity homeMorning = populationFactory.createActivityFromCoord("home", coordinate(homeDistrict));
 		homeMorning.setEndTime(homeLeaveTime.getSeconds());
 		plan.addActivity(homeMorning);
 		plan.addLeg(populationFactory.createLeg("car"));
+
 		Activity workActivity = populationFactory.createActivityFromCoord("work", coordinate(workDistrict));
-		workActivity.setEndTime(workLeaveTime(homeLeaveTime).getSeconds());
+		workActivity.setEndTime(workLeaveTime.getSeconds());
 		workDistrict.increaseNumberOfWorkers();
 		plan.addActivity(workActivity);
 		plan.addLeg(populationFactory.createLeg("car"));
+
 		Activity homeEvening = populationFactory.createActivityFromCoord("home", coordinate(homeDistrict));
 		plan.addActivity(homeEvening);
 		return plan;
@@ -247,6 +322,49 @@ public class District {
 
 	public String getName() {
 		return name;
+	}
+
+	public void printWorkerTo(BufferedWriter output, List<District> districtOrder) throws IOException {
+		output.write(getName());
+		for (District to : districtOrder) {
+			if (!districtToWorker.containsKey(to)) {
+				output.write(SEPARATOR + "0");
+				continue;
+			}
+			output.write(SEPARATOR + districtToWorker.get(to));
+		}
+		output.write(SEPARATOR + getInhabitants());
+		output.newLine();
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj) {
+			return true;
+		}
+		if (obj == null) {
+			return false;
+		}
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		District other = (District) obj;
+		if (name == null) {
+			if (other.name != null) {
+				return false;
+			}
+		} else if (!name.equals(other.name)) {
+			return false;
+		}
+		return true;
 	}
 
 }

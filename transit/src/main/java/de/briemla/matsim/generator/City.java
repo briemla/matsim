@@ -1,8 +1,15 @@
 package de.briemla.matsim.generator;
 
+import java.awt.geom.Point2D;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Random;
 import java.util.stream.Collectors;
@@ -25,6 +32,10 @@ import de.micromata.opengis.kml.v_2_2_0.Polygon;
 
 public class City {
 
+	private static final String DISTANCE_CSV = "Distance.csv";
+	private static final String WORKER_CSV = "Worker.csv";
+	private static final String SEPARATOR = ";";
+	private static final double METER_TO_KILOMETER = 0.001;
 	private final List<District> districts;
 	private final CoordinateTransformation coordinateTransformation;
 	private final Statistic statistic;
@@ -127,9 +138,13 @@ public class City {
 	}
 
 	public void cleanUpAvailableDistricts() {
-		availableWorkDistricts = availableWorkDistricts.stream().filter(District::hasFreeWorkplace)
-				.collect(Collectors.toList());
+		cleanUpWorkDistricts();
 		availableHomeDistricts = availableHomeDistricts.stream().filter(District::hasNonWorkingInhabitants)
+				.collect(Collectors.toList());
+	}
+
+	private void cleanUpWorkDistricts() {
+		availableWorkDistricts = availableWorkDistricts.stream().filter(District::hasFreeWorkplace)
 				.collect(Collectors.toList());
 	}
 
@@ -141,8 +156,58 @@ public class City {
 	 */
 	public void createPopulation(Population population) {
 		for (int inhabitant = 0; inhabitant < getInhabitants(); inhabitant++) {
-			getRandomAvailableHomeDistrict().createPerson(population, getAvailableWorkDistricts());
+			getRandomAvailableHomeDistrict().createPerson(population, districts);
 			cleanUpAvailableDistricts();
+		}
+	}
+
+	public void writeMatricesTo(File outputDirectory) {
+		printDistanceMatrix(outputDirectory);
+		printWorkerMatrix(outputDirectory);
+	}
+
+	private void printDistanceMatrix(File outputDirectory) {
+		NumberFormat toDecimal = NumberFormat.getNumberInstance(Locale.GERMAN);
+		try (BufferedWriter output = new BufferedWriter(new FileWriter(new File(outputDirectory, DISTANCE_CSV)))) {
+			districts.sort((district1, district2) -> district1.getName().compareTo(district2.getName()));
+			printDistrictNamesTo(output);
+			output.newLine();
+			for (District from : districts) {
+				Point2D fromCenter = from.getCenter();
+				output.write(from.getName());
+				for (District to : districts) {
+					Point2D toCenter = to.getCenter();
+					double distance = fromCenter.distance(toCenter) * METER_TO_KILOMETER;
+					output.write(SEPARATOR + toDecimal.format(distance));
+				}
+				output.newLine();
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void printDistrictNamesTo(BufferedWriter output) {
+		districts.stream().forEach(district -> {
+			try {
+				output.write(SEPARATOR + district.getName());
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		});
+	}
+
+	private void printWorkerMatrix(File outputDirectory) {
+		try (BufferedWriter output = new BufferedWriter(new FileWriter(new File(outputDirectory, WORKER_CSV)))) {
+			districts.sort((district1, district2) -> district1.getName().compareTo(district2.getName()));
+			printDistrictNamesTo(output);
+			output.write(SEPARATOR + "Gesamt");
+			output.newLine();
+			for (District from : districts) {
+				from.printWorkerTo(output, districts);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 }
