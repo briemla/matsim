@@ -11,8 +11,8 @@
 	
 	<module name="global">
 		<param name="randomSeed" value="5399998864266990000" />
-		<param name="coordinateSystem" value="CH1903_LV03" />
-		<param name="numberOfThreads" value="4" />
+		<param name="coordinateSystem" value="WGS84_UTM33N" />
+		<param name="numberOfThreads" value="8" />
 	</module>
 			
 	<!-- ====================================================================== -->
@@ -68,7 +68,7 @@
 	<module name="controler">
 		<param name="outputDirectory" value="&OUTBASE;" />
 		<param name="firstIteration" value="0" />
-		<param name="lastIteration" value="0" />		
+		<param name="lastIteration" value="10" />		
 		<param name="runId" value="run0" />
 		<param name="routingAlgorithmType" value="Dijkstra" />
 		<param name="mobsim" value="qsim" />
